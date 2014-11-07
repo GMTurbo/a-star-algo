@@ -7,9 +7,11 @@ var Node = function(options){
     g: 0
   });
   // hueristic (h), movement cost (g), f-val (g+h), parent (a node to reach this node)
-  this.H = options.h;
-  this.G = options.g;
-  this.F = this.H + this.G;
+  this.x = options.x,
+  this.y = options.y,
+  this.H = options.h,
+  this.G = options.g,
+  this.F = this.H + this.G,
   this.parent = null;
 };
 
