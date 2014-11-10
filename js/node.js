@@ -5,7 +5,8 @@ var Node = function(options) {
     width: 1,
     i: 0,
     j: 0,
-    wall: false
+    wall: false,
+    index: 0
   });
   // hueristic (h), movement cost (g), f-val (g+h), parent (a node to reach this node)
   this.i = options.i,
@@ -13,18 +14,18 @@ var Node = function(options) {
     this.width = options.width,
     this.x = this.i * this.width,
     this.y = this.j * this.width,
+    this.wall = options.wall,
     this.H = options.h,
-    this.G = options.g,
+    this.G = options.wall ? 1000 : options.g,
     this.F = this.H + this.G,
     this.parent = null,
     this.open = -1,
     this.scaler = 5,
-    this.wall = options.wall,
     this.opacity = 0,
     this.inPath = false,
     this.startingNode = false,
     this.endingNode = false,
-    this.clock = 0;
+    this.index = options.index;
 };
 
 Node.prototype.getColor = function() {
@@ -174,7 +175,7 @@ Node.prototype.setStateFromMouse = function(highlighted) {
 };
 
 Node.prototype.getIndex = function() {
-  return this.i * this.width + this.j;
+  return this.index;
 };
 
 Node.prototype.getDistance = function(target) {

@@ -50,16 +50,17 @@ var System = function(options) {
         mesh.push(new Node({
           i: i,
           j: j,
+          index: i*x+j,
           width: ~~(scale),
-          wall: Math.random() <= 0.05
+          wall: Math.random() <= 0.3
         }));
       }
     }
 
-    start = mesh[~~(Math.random() * mesh.length)];
+    start = mesh[0];
     start.startingNode = true;
     current = start;
-    end = mesh[~~(Math.random() * mesh.length)];
+    end = mesh[mesh.length-1];
     end.endingNode = true;
 
     _.forEach(mesh, function(node) {
@@ -77,7 +78,7 @@ var System = function(options) {
   function calculateHeuristic(current, target) {
     //manhattan heuristic is just the number of
     // nodes between the node and the target
-    if(current.wall) return 1e5;
+    if (current.wall) return 1e5;
     return Math.abs(current.x - target.x) + Math.abs(current.y - target.y)
   };
 
@@ -107,20 +108,31 @@ var System = function(options) {
     return end;
   };
 
-  var done = false;
+  var found = false;
 
   function updatePath() {
     //determine the walkable adjacent squares to current start position
 
-    if (done.length > 0 || open.length == 0) {
+    if (found || open.length == 0) {
       return;
     }
 
     current.open = 0;
 
-    var next = _.min(open, function(node) {
+    // var next = _.min(open, function(node) {
+    //   return node.F;
+    // });
+    var next = _.sortBy(open, function(node) {
       return node.F;
     });
+
+    if (next.length == 1) {
+      next = next[0];
+    } else if (Math.abs(next[0].F - next[1].F) < 5){
+      next = next[~~(Math.random() * 3)];
+    }else{
+      next = next[0];
+    }
 
     next.inPath = true;
 
@@ -128,62 +140,95 @@ var System = function(options) {
 
     current = next;
 
-    closed.push(current);
+    if (!_.contains(closed, current))
+      closed.push(current);
 
     _.reject(open, function(node) {
       return current.getIndex() === node.getIndex(); // or some complex logic
     });
 
-    done = _.filter(closed, function(node) {
-      return node.getIndex() === end.getIndex();
-    });
+    found = _.contains(closed, end)
 
-    if (done.length > 0) {
+    if (found) {
       return;
     }
 
     var neighbors = getWalkableNode(current, mesh);
 
-    var withinOpened, withinClosed;
-
     _.forEach(neighbors, function(neighbor) {
-
-      withinClosed = _.filter(closed, function(node) {
-        return node.getIndex() === neighbor.getIndex();
-      });
-
-      if (withinClosed.length > 0)
-        return;
-
-      withinOpened = _.filter(open, function(node) {
-        return node.getIndex() === neighbor.getIndex();
-      });
-
-      if (withinOpened.length == 0) {
-        neighbor.parent = current;
-        neighbor.open = 1;
-        neighbor.setMovementCost(Math.abs(neighbor.i - start.i) + Math.abs(neighbor.j - start.j));
-        open.push(neighbor);
-      } else {
-        var g = Math.abs(neighbor.i - current.i) + Math.abs(neighbor.j - current.j);
-
-        if (g + neighbor.H <= neighbor.F) {
-          neighbor.setMovementCost(g);
-          neighbor.parent = current;
-        }
-      }
+      determineNodeValues(current, neighbor);
+      // withinClosed = _.filter(closed, function(node) {
+      //   return node.getIndex() === neighbor.getIndex();
+      // });
+      //
+      // if (withinClosed.length > 0)
+      //   return;
+      //
+      // withinOpened = _.filter(open, function(node) {
+      //   return node.getIndex() === neighbor.getIndex();
+      // });
+      //
+      // if (withinOpened.length == 0) {
+      //   neighbor.parent = current;
+      //   neighbor.open = 1;
+      //   neighbor.setMovementCost(getCost(neighbor, start));
+      //   open.push(neighbor);
+      // } else {
+      //   var g = getCost(current, neighbor); //Math.abs(neighbor.i - current.i) + Math.abs(neighbor.j - current.j);
+      //
+      //   if (g + neighbor.H <= neighbor.F) {
+      //     neighbor.setMovementCost(g);
+      //     neighbor.parent = current;
+      //   }
+      // }
     });
   };
 
+  function determineNodeValues(current, testing) {
+    if (testing.getIndex() == end.getIndex()) {
+      end.parent = current;
+      found = true;
+      return;
+    }
+
+    if (testing.wall) return;
+
+    if (!_.contains(closed, testing)) {
+      if (_.contains(open, testing)) {
+        var newCost = getCost(current, testing);
+        if (newCost < testing.G) {
+          testing.parent = current;
+          testing.setMovementCost(newCost);
+        }
+      } else {
+        testing.parent = current;
+        testing.setMovementCost(getCost(current, testing));
+        testing.open = 1;
+        open.push(testing);
+      }
+    }
+  }
+
+  function getCost(current, node) {
+    if (Math.abs(current.i - node.i) == 1 && Math.abs(current.j - node.j) == 0) {
+      return 10;
+    } else if (Math.abs(current.j - node.j) == 1 && Math.abs(current.i - node.i) == 0) {
+      return 10;
+    } else if (Math.abs(current.j - node.j) == 1 && Math.abs(current.i - node.i) == 1) {
+      return 14;
+    }
+    return 10;
+  }
+
   function getWalkableNode(current, all) {
     return _.filter(all, function(node) {
-      if (!node.open || node.wall || node.getIndex() == current.getIndex())
+      if (!node.open || node.getIndex() == current.getIndex())
         return false;
       if (Math.abs(current.i - node.i) == 1 && Math.abs(current.j - node.j) == 0) {
         return true;
       } else if (Math.abs(current.j - node.j) == 1 && Math.abs(current.i - node.i) == 0) {
         return true;
-      }else if(Math.abs(current.j - node.j) == 1 && Math.abs(current.i - node.i) == 1){
+      } else if (Math.abs(current.j - node.j) == 1 && Math.abs(current.i - node.i) == 1) {
         return true;
       }
       return false;
