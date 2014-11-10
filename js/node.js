@@ -73,13 +73,6 @@ Node.prototype.draw = function(context) {
   context.shadowBlur = 10;
   context.fill();
 
-  // context.lineWidth = 1;
-  // context.strokeStyle = this.getColor();
-  // for (var i = 0, length = path.length; i < length - 1; i++) {
-  //   context.moveTo(path[i][0] - r, path[i][1] - r);
-  //   context.lineTo(path[i + 1][0] - r, path[i + 1][1] - r);
-  // }
-
   context.stroke();
 
   context.closePath();

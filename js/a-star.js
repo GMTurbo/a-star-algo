@@ -71,7 +71,7 @@ var System = function(options) {
         mesh.push(new Node({
           x: i * scale,
           y: j * scale,
-          width: ~~(scale/2),
+          width: ~~(scale / 2),
           h: calculateHeuristic({
             x: i * scale,
             y: j * scale
@@ -99,7 +99,7 @@ var System = function(options) {
   function calculateHeuristic(current, target) {
     // 10 for nodes next too
     // 14 for nodes diagonal too
-    return (Math.abs(current.x - target.x) == 1 **)
+    return (Math.abs(current.x - target.x) == 1 * * )
   };
 
   function getStartLocation(area) {
@@ -122,9 +122,9 @@ var System = function(options) {
     return end;
   };
 
-  function updateNodes(){
+  function updateNodes() {
     // get current
-    // open 
+    // open
   };
 
   function drawSystem() {
