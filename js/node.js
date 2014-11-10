@@ -1,51 +1,64 @@
 var Node = function(options) {
   options = _.defaults(options, {
-    x: 0.1,
-    y: 100,
     h: 0,
     g: 0,
     width: 1,
     i: 0,
+    j: 0,
     wall: false
   });
   // hueristic (h), movement cost (g), f-val (g+h), parent (a node to reach this node)
   this.i = options.i,
-    this.x = options.x,
-    this.y = options.y,
+    this.j = options.j,
+    this.width = options.width,
+    this.x = this.i * this.width,
+    this.y = this.j * this.width,
     this.H = options.h,
     this.G = options.g,
     this.F = this.H + this.G,
     this.parent = null,
-    this.open = 1,
+    this.open = -1,
     this.scaler = 5,
-    this.state = 0,
     this.wall = options.wall,
-    this.width = options.width,
     this.opacity = 0,
+    this.inPath = false,
+    this.startingNode = false,
+    this.endingNode = false,
     this.clock = 0;
 };
 
 Node.prototype.getColor = function() {
   var color;
 
-  switch (this.state) {
+  switch (this.open) {
     case 0:
       color = 'rgba(255,0,0,' + this.opacity + ')';
       break;
     case 1:
       color = 'rgba(171,241,55,' + 200 + ')';
       break;
+    default:
+      color = 'rgba(255,0,0,' + this.opacity + ')';
+      break;
   }
 
-  if(this.wall){
+  if (this.wall) {
     color = 'rgba(254,100,100,' + 200 + ')';
+  }
+
+  if(this.inPath){
+        color = 'rgba(171,0,55,' + 200 + ')';
+  }
+
+  if(this.startingNode || this.endingNode){
+        color = 'rgba(171,0,0,' + 200 + ')';
   }
 
   return color;
 };
 
 Node.prototype.getShadowColor = function() {
-  switch (this.state) {
+  switch (this.open) {
     case 0:
       return 'rgba(0,0,0,1)';
     case 1:
@@ -87,8 +100,8 @@ Node.prototype.draw = function(context) {
   context.rect(this.x, this.y, this.width, this.width);
 
   context.closePath();
-  context.shadowOffsetX = (this.wall ? -1 : 1);
-  context.shadowOffsetY = (this.wall ? -1 : 1);
+  //context.shadowOffsetX = (this.wall ? -1 : 1);
+  //context.shadowOffsetY = (this.wall ? -1 : 1);
   //context.shadowBlur = 10;
   context.fill();
 
@@ -142,7 +155,7 @@ Node.prototype.calculateOffsetsFromCamera = function(point) {
   this.state = this.getDistance({
     x: point[0],
     y: point[1]
-  }) < this.width/2 ? 1 : 0;
+  }) < this.width / 2 ? 1 : 0;
 
   var angle = Math.atan2(vecFromCamera[1], vecFromCamera[0]);
 
@@ -158,11 +171,15 @@ Node.prototype.setStateFromMouse = function(highlighted) {
   //     y: highlighted.y
   //   }) < this.width)
   //   this.state = highlighted.mouseDown;
-}
+};
+
+Node.prototype.getIndex = function() {
+  return this.i * this.width + this.j;
+};
 
 Node.prototype.getDistance = function(target) {
   var center = this.getCenter();
   return Math.sqrt(
     Math.pow(center.x - target.x, 2) +
     Math.pow(center.y - target.y, 2));
-}
+};

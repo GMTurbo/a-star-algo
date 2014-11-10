@@ -25,7 +25,7 @@ var System = function(options) {
     context = canvas.getContext('2d'),
     initialSetup = true,
     isMobile = options.isMobile,
-    start, end,
+    start, end, current,
     open = [],
     closed = [];
 
@@ -43,48 +43,30 @@ var System = function(options) {
 
     $(canvas).attr('width', width).attr('height', height);
 
-    var scale = 41;
-
-    start = getStartLocation({
-        xRange: {
-          min: 0,
-          max: ~~(width / scale)
-        },
-        yRange: {
-          min: 0,
-          max: ~~(height / scale)
-        }
-      }),
-      end = getEndLocation({
-        xRange: {
-          min: 0,
-          max: ~~(width / scale)
-        },
-        yRange: {
-          min: 0,
-          max: ~~(height / scale)
-        }
-      });
+    var scale = 10;
 
     for (var i = 0, x = ~~(width / scale); i < x; i++) {
       for (var j = 0, y = ~~(height / scale); j < y; j++) {
         mesh.push(new Node({
-          i: i * x + j,
-          x: i * scale,
-          y: j * scale,
+          i: i,
+          j: j,
           width: ~~(scale),
-          h: calculateHeuristic({
-            x: i * scale,
-            y: j * scale
-          }, end),
-          wall: Math.random() <= 0.1,
-          g: calculateMoveCost(start, {
-            x: i * scale,
-            y: j * scale
-          })
+          wall: Math.random() <= 0.05
         }));
       }
     }
+
+    start = mesh[~~(Math.random() * mesh.length)];
+    start.startingNode = true;
+    current = start;
+    end = mesh[~~(Math.random() * mesh.length)];
+    end.endingNode = true;
+
+    _.forEach(mesh, function(node) {
+      node.setHueristic(calculateHeuristic(node, end));
+    })
+
+    open.push(current);
 
     if (initialSetup) {
       updateSystem();
@@ -95,6 +77,7 @@ var System = function(options) {
   function calculateHeuristic(current, target) {
     //manhattan heuristic is just the number of
     // nodes between the node and the target
+    if(current.wall) return 1e5;
     return Math.abs(current.x - target.x) + Math.abs(current.y - target.y)
   };
 
@@ -124,9 +107,87 @@ var System = function(options) {
     return end;
   };
 
-  function updateNodes() {
-    // get current
-    // open
+  var done = false;
+
+  function updatePath() {
+    //determine the walkable adjacent squares to current start position
+
+    if (done.length > 0 || open.length == 0) {
+      return;
+    }
+
+    current.open = 0;
+
+    var next = _.min(open, function(node) {
+      return node.F;
+    });
+
+    next.inPath = true;
+
+    current.parent = next;
+
+    current = next;
+
+    closed.push(current);
+
+    _.reject(open, function(node) {
+      return current.getIndex() === node.getIndex(); // or some complex logic
+    });
+
+    done = _.filter(closed, function(node) {
+      return node.getIndex() === end.getIndex();
+    });
+
+    if (done.length > 0) {
+      return;
+    }
+
+    var neighbors = getWalkableNode(current, mesh);
+
+    var withinOpened, withinClosed;
+
+    _.forEach(neighbors, function(neighbor) {
+
+      withinClosed = _.filter(closed, function(node) {
+        return node.getIndex() === neighbor.getIndex();
+      });
+
+      if (withinClosed.length > 0)
+        return;
+
+      withinOpened = _.filter(open, function(node) {
+        return node.getIndex() === neighbor.getIndex();
+      });
+
+      if (withinOpened.length == 0) {
+        neighbor.parent = current;
+        neighbor.open = 1;
+        neighbor.setMovementCost(Math.abs(neighbor.i - start.i) + Math.abs(neighbor.j - start.j));
+        open.push(neighbor);
+      } else {
+        var g = Math.abs(neighbor.i - current.i) + Math.abs(neighbor.j - current.j);
+
+        if (g + neighbor.H <= neighbor.F) {
+          neighbor.setMovementCost(g);
+          neighbor.parent = current;
+        }
+      }
+    });
+  };
+
+  function getWalkableNode(current, all) {
+    return _.filter(all, function(node) {
+      if (!node.open || node.wall || node.getIndex() == current.getIndex())
+        return false;
+      if (Math.abs(current.i - node.i) == 1 && Math.abs(current.j - node.j) == 0) {
+        return true;
+      } else if (Math.abs(current.j - node.j) == 1 && Math.abs(current.i - node.i) == 0) {
+        return true;
+      }else if(Math.abs(current.j - node.j) == 1 && Math.abs(current.i - node.i) == 1){
+        return true;
+      }
+      return false;
+    });
   };
 
   function drawSystem() {
@@ -138,7 +199,7 @@ var System = function(options) {
   };
 
   function updateSystem() {
-    updateNodes();
+    updatePath();
     drawSystem();
     reqFrame(updateSystem);
   };
@@ -148,10 +209,10 @@ var System = function(options) {
   function onMouseMove(mouse) {
     mousePos = [mouse.x, mouse.y];
     //drawSystem();
-    console.log(mousePos);
+    //console.log(mousePos);
   }
 
-  function resize(size){
+  function resize(size) {
     width = size.width;
     height = size.height;
     setup();
