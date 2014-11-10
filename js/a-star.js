@@ -26,7 +26,7 @@ var System = function(options) {
     initialSetup = true,
     isMobile = options.isMobile,
     start, end,
-    mesh = [];
+    open = [], closed = [];
 
   var setup = function() {
     //heuristic value of each node can
@@ -43,7 +43,7 @@ var System = function(options) {
     $(canvas).attr('width', width).attr('height', height);
 
     var count = width * height,
-      scale = 20;
+      scale = 100;
 
     start = getStartLocation({
         xRange: {
@@ -69,6 +69,7 @@ var System = function(options) {
     for (var i = 0, x = ~~(width / scale); i <= x; i++) {
       for (var j = 0, y = ~~(height / scale); j <= y; j++) {
         mesh.push(new Node({
+          i: i*x + j,
           x: i * scale,
           y: j * scale,
           width: ~~(scale / 2),
@@ -96,10 +97,10 @@ var System = function(options) {
     return Math.abs(current.x - target.x) + Math.abs(current.y - target.y)
   };
 
-  function calculateHeuristic(current, target) {
+  function calculateMoveCost(current, target) {
     // 10 for nodes next too
     // 14 for nodes diagonal too
-    return (Math.abs(current.x - target.x) == 1 * * )
+    return 1;//(Math.abs(current.x - target.x) == 1 * * )
   };
 
   function getStartLocation(area) {

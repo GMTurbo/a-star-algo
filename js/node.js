@@ -4,10 +4,12 @@ var Node = function(options) {
     y: 100,
     h: 0,
     g: 0,
-    width: 1
+    width: 1,
+    i: 0
   });
   // hueristic (h), movement cost (g), f-val (g+h), parent (a node to reach this node)
-  this.x = options.x,
+  this.i = options.i,
+    this.x = options.x,
     this.y = options.y,
     this.H = options.h,
     this.G = options.g,
@@ -15,32 +17,32 @@ var Node = function(options) {
     this.parent = null,
     this.open = 1,
     this.width = options.width,
-    this.opacity = 128;
+    this.opacity = 0;
 };
 
 Node.prototype.getColor = function() {
-  // switch (TYPE) {
-  //   case 'captured':
-  //     return 'rgba(255,0,0,' + opacity + ')';
-  //   case 'cop':
-  //     return 'rgba(171,241,55,' + opacity + ')';
-  //   case 'robber':
-  //     return 'rgba(254,255,189,' + opacity + ')';
-  // }
+  switch (this.i % 2) {
+    case 0:
+      return 'rgba(255,0,0,' + this.opacity + ')';
+    case 1:
+      return 'rgba(171,241,55,' + this.opacity + ')';
+    default:
+      return 'rgba(254,255,189,' + this.opacity + ')';
+  }
 
   return 'rgba(171,241,55,' + this.opacity + ')';
 };
 
 Node.prototype.getShadowColor = function() {
-  // switch (TYPE) {
-  //   case 'captured':
-  //     return 'rgba(0,0,0,1)';
-  //   case 'cop':
-  //     return 'rgba(0,0,0,1)';
-  //   case 'robber':
-  //     return 'rgba(0,0,0,1)';
-  // }
-  return 'rgba(0,0,0,1)';
+  switch (this.i % 2) {
+    case 0:
+      return 'rgba(0,0,0,1)';
+    case 1:
+      return 'rgba(0,0,0,10)';
+    default:
+      return 'rgba(0,0,0,10)';
+  }
+  //return 'rgba(0,0,0,1)';
 };
 
 Node.prototype.setMovementCost = function(g) {
@@ -68,8 +70,8 @@ Node.prototype.draw = function(context) {
   context.arc(pnt[0] - this.width, pnt[1] - this.width, this.width, 0, 2 * Math.PI, false);
 
   context.closePath();
-  context.shadowOffsetX = 0;
-  context.shadowOffsetY = 0;
+  context.shadowOffsetX = (this.i % 2 == 0 ? 0 : 10);
+  context.shadowOffsetY = (this.i % 2 == 0 ? 10 : 0);
   context.shadowBlur = 10;
   context.fill();
 
