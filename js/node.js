@@ -52,7 +52,7 @@ Node.prototype.getColor = function() {
   }
 
   if(this.startingNode || this.endingNode){
-        color = 'rgba(171,0,0,' + 200 + ')';
+        color = 'rgba(0,0,255,' + 200 + ')';
   }
 
   return color;
