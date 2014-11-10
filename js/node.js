@@ -23,6 +23,7 @@ var Node = function(options) {
     this.scaler = 5,
     this.opacity = 0,
     this.inPath = false,
+    this.finished = false,
     this.startingNode = false,
     this.endingNode = false,
     this.index = options.index;
@@ -47,12 +48,12 @@ Node.prototype.getColor = function() {
     color = 'rgba(254,100,100,' + 200 + ')';
   }
 
-  if(this.inPath){
-        color = 'rgba(171,0,55,' + 200 + ')';
+  if (this.inPath) {
+    color = 'rgba(171,0,55,' + 200 + ')';
   }
 
-  if(this.startingNode || this.endingNode){
-        color = 'rgba(0,0,255,' + 200 + ')';
+  if (this.startingNode || this.endingNode || this.finished) {
+    color = 'rgba(0,0,255,' + 200 + ')';
   }
 
   return color;

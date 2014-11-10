@@ -114,6 +114,7 @@ var System = function(options) {
     //determine the walkable adjacent squares to current start position
 
     if (found || open.length == 0) {
+      colorPath(current);
       return;
     }
 
@@ -137,7 +138,7 @@ var System = function(options) {
 
     next.inPath = true;
 
-    current.parent = next;
+    //current.parent = next;
 
     if(current.index == next.index)
       stuckCount++;
@@ -188,7 +189,12 @@ var System = function(options) {
       // }
     });
   };
-
+  function colorPath(current){
+    current.finished = true;
+    if(current.parent){
+      colorPath(current.parent);
+    }
+  };
   function determineNodeValues(current, testing) {
     if (testing.getIndex() == end.getIndex()) {
       end.parent = current;
