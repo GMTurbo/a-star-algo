@@ -43,7 +43,7 @@ var System = function(options) {
 
     $(canvas).attr('width', width).attr('height', height);
 
-    var scale = 10;
+    var scale = 15;
 
     for (var i = 0, x = ~~(width / scale); i < x; i++) {
       for (var j = 0, y = ~~(height / scale); j < y; j++) {
@@ -60,7 +60,7 @@ var System = function(options) {
     start = mesh[0];
     start.startingNode = true;
     current = start;
-    end = mesh[mesh.length-1];
+    end = mesh[~~(Math.random() * mesh.length)];
     end.endingNode = true;
 
     _.forEach(mesh, function(node) {
@@ -108,7 +108,7 @@ var System = function(options) {
     return end;
   };
 
-  var found = false;
+  var found = false, stuckCount = 0;
 
   function updatePath() {
     //determine the walkable adjacent squares to current start position
@@ -128,8 +128,9 @@ var System = function(options) {
 
     if (next.length == 1) {
       next = next[0];
-    } else if (Math.abs(next[0].F - next[1].F) < 5){
-      next = next[~~(Math.random() * 3)];
+    } else if (stuckCount > 5 && Math.abs(next[0].F - next[1].F) <= 15){
+      stuckCount = 0;
+      next = next[~~(Math.random() * (next.length > 6 ? 6 : next.length))];
     }else{
       next = next[0];
     }
@@ -138,7 +139,11 @@ var System = function(options) {
 
     current.parent = next;
 
+    if(current.index == next.index)
+      stuckCount++;
+
     current = next;
+
 
     if (!_.contains(closed, current))
       closed.push(current);
