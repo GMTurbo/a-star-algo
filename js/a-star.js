@@ -60,7 +60,7 @@ var System = function(options) {
     start = mesh[0];
     start.startingNode = true;
     current = start;
-    end = mesh[~~(Math.random() * mesh.length)];
+    end = mesh[mesh.length-1];
     end.endingNode = true;
 
     _.forEach(mesh, function(node) {
@@ -131,7 +131,7 @@ var System = function(options) {
       next = next[0];
     } else if (stuckCount > 5 && Math.abs(next[0].F - next[1].F) <= 15){
       stuckCount = 0;
-      next = next[~~(Math.random() * (next.length > 6 ? 6 : next.length))];
+      next = next[~~(Math.random() * (next.length > 5 ? 5 : next.length))];
     }else{
       next = next[0];
     }
@@ -233,7 +233,7 @@ var System = function(options) {
 
   function getWalkableNode(current, all) {
     return _.filter(all, function(node) {
-      if (!node.open || node.getIndex() == current.getIndex())
+      if (!node.open || node.wall || node.getIndex() == current.getIndex())
         return false;
       if (Math.abs(current.i - node.i) == 1 && Math.abs(current.j - node.j) == 0) {
         return true;
