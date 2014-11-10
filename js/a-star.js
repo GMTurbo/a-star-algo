@@ -26,7 +26,8 @@ var System = function(options) {
     initialSetup = true,
     isMobile = options.isMobile,
     start, end,
-    open = [], closed = [];
+    open = [],
+    closed = [];
 
   var setup = function() {
     //heuristic value of each node can
@@ -42,8 +43,7 @@ var System = function(options) {
 
     $(canvas).attr('width', width).attr('height', height);
 
-    var count = width * height,
-      scale = 100;
+    var scale = 50;
 
     start = getStartLocation({
         xRange: {
@@ -69,10 +69,10 @@ var System = function(options) {
     for (var i = 0, x = ~~(width / scale); i <= x; i++) {
       for (var j = 0, y = ~~(height / scale); j <= y; j++) {
         mesh.push(new Node({
-          i: i*x + j,
+          i: i * x + j,
           x: i * scale,
           y: j * scale,
-          width: ~~(scale / 2),
+          width: ~~(scale),
           h: calculateHeuristic({
             x: i * scale,
             y: j * scale
@@ -100,7 +100,7 @@ var System = function(options) {
   function calculateMoveCost(current, target) {
     // 10 for nodes next too
     // 14 for nodes diagonal too
-    return 1;//(Math.abs(current.x - target.x) == 1 * * )
+    return 1; //(Math.abs(current.x - target.x) == 1 * * )
   };
 
   function getStartLocation(area) {
@@ -131,17 +131,26 @@ var System = function(options) {
   function drawSystem() {
     context.clearRect(0, 0, width, height);
     _.forEach(mesh, function(node) {
-      node.draw(context);
+      node.drawFromCamera(context, mousePos);
     });
   };
 
   function updateSystem() {
     updateNodes();
-    drawSystem();
+    //drawSystem();
     reqFrame(updateSystem);
   };
 
+  var mousePos = [0, 0];
+
+  function onMouseMove(mouse) {
+    mousePos = [mouse.x, mouse.y];
+    drawSystem();
+    console.log(mousePos);
+  }
+
   return {
-    begin: setup
+    begin: setup,
+    onMouseMove: onMouseMove
   }
 };
