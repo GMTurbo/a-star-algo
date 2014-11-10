@@ -54,12 +54,12 @@ $(document).ready(function() {
   //   mouseDown = 0;
   // });
 
-  // $(window).resize(function() {
-  //
-  //   system.resize({
-  //     width: $('#space').width(),
-  //     height: $('#space').height()
-  //   });
-  //
-  // });
+  $(window).resize(function() {
+
+    system.resize({
+      width: $('#space').width(),
+      height: $('#space').height()
+    });
+
+  });
 });

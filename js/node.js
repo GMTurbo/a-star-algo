@@ -5,7 +5,8 @@ var Node = function(options) {
     h: 0,
     g: 0,
     width: 1,
-    i: 0
+    i: 0,
+    wall: false
   });
   // hueristic (h), movement cost (g), f-val (g+h), parent (a node to reach this node)
   this.i = options.i,
@@ -18,22 +19,29 @@ var Node = function(options) {
     this.open = 1,
     this.scaler = 5,
     this.state = 0,
+    this.wall = options.wall,
     this.width = options.width,
     this.opacity = 0,
     this.clock = 0;
 };
 
 Node.prototype.getColor = function() {
+  var color;
+
   switch (this.state) {
     case 0:
-      return 'rgba(255,0,0,' + this.opacity + ')';
+      color = 'rgba(255,0,0,' + this.opacity + ')';
+      break;
     case 1:
-      return 'rgba(171,241,55,' + 200 + ')';
-    default:
-      return 'rgba(254,255,189,' + this.opacity + ')';
+      color = 'rgba(171,241,55,' + 200 + ')';
+      break;
   }
 
-  return 'rgba(171,241,55,' + this.opacity + ')';
+  if(this.wall){
+    color = 'rgba(254,100,100,' + 200 + ')';
+  }
+
+  return color;
 };
 
 Node.prototype.getShadowColor = function() {
@@ -64,21 +72,23 @@ Node.prototype.setParent = function(parent) {
 
 Node.prototype.draw = function(context) {
 
-  if (this.clock > 10) {
-    this.clock = 0;
-  }
+  //this.wall = Math.random() <= 0.25;
+  // if (this.clock > 5) {
+  //   this.clock = 0;
+  //   this.wall = Math.random() <= 0.10;
+  // }
 
-  var pnt = [this.x, this.y];
+  var pnt = this.getCenter();
 
   context.beginPath();
 
   context.fillStyle = this.getColor();
   context.shadowColor = this.getShadowColor();
-  context.arc(pnt[0] - this.width, pnt[1] - this.width, this.width, 0, 2 * Math.PI, false);
+  context.rect(this.x, this.y, this.width, this.width);
 
   context.closePath();
-  //  context.shadowOffsetX = (this.clock % 4 == 0 ? -10 : 10);
-  //context.shadowOffsetY = (this.clock % 4 == 0 ? -10 : 10);
+  context.shadowOffsetX = (this.wall ? -1 : 1);
+  context.shadowOffsetY = (this.wall ? -1 : 1);
   //context.shadowBlur = 10;
   context.fill();
 
@@ -86,7 +96,7 @@ Node.prototype.draw = function(context) {
 
   context.closePath();
 
-  this.clock++;
+  //this.clock++;
 
 };
 
@@ -101,7 +111,7 @@ Node.prototype.drawFromCamera = function(context, camera) {
   //camera is in 3d space, so we will consider z off screen plane
 
   //[x,y,z]
-  var shadowOffsets = this.calculateOffsetsFromCamera(camera);
+  //var shadowOffsets = this.calculateOffsetsFromCamera(camera);
 
   var pnt = this.getCenter();
 
@@ -112,8 +122,8 @@ Node.prototype.drawFromCamera = function(context, camera) {
   context.rect(this.x, this.y, this.width, this.width);
   //context.rect(pnt.x, pnt.y, 1, 1);
   context.closePath();
-  context.shadowOffsetX = shadowOffsets[0];
-  context.shadowOffsetY = shadowOffsets[1];
+  //context.shadowOffsetX = shadowOffsets[0];
+  //context.shadowOffsetY = shadowOffsets[1];
   context.shadowBlur = 10;
   context.fill();
 
@@ -132,7 +142,7 @@ Node.prototype.calculateOffsetsFromCamera = function(point) {
   this.state = this.getDistance({
     x: point[0],
     y: point[1]
-  }) < this.width / 2 ? 1 : 0;
+  }) < this.width/2 ? 1 : 0;
 
   var angle = Math.atan2(vecFromCamera[1], vecFromCamera[0]);
 

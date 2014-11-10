@@ -43,7 +43,7 @@ var System = function(options) {
 
     $(canvas).attr('width', width).attr('height', height);
 
-    var scale = 100;
+    var scale = 41;
 
     start = getStartLocation({
         xRange: {
@@ -66,8 +66,8 @@ var System = function(options) {
         }
       });
 
-    for (var i = 0, x = ~~(width / scale); i <= x; i++) {
-      for (var j = 0, y = ~~(height / scale); j <= y; j++) {
+    for (var i = 0, x = ~~(width / scale); i < x; i++) {
+      for (var j = 0, y = ~~(height / scale); j < y; j++) {
         mesh.push(new Node({
           i: i * x + j,
           x: i * scale,
@@ -77,6 +77,7 @@ var System = function(options) {
             x: i * scale,
             y: j * scale
           }, end),
+          wall: Math.random() <= 0.1,
           g: calculateMoveCost(start, {
             x: i * scale,
             y: j * scale
@@ -131,13 +132,14 @@ var System = function(options) {
   function drawSystem() {
     context.clearRect(0, 0, width, height);
     _.forEach(mesh, function(node) {
-      node.drawFromCamera(context, mousePos);
+      //node.drawFromCamera(context, mousePos);
+      node.draw(context);
     });
   };
 
   function updateSystem() {
     updateNodes();
-    //drawSystem();
+    drawSystem();
     reqFrame(updateSystem);
   };
 
@@ -145,12 +147,19 @@ var System = function(options) {
 
   function onMouseMove(mouse) {
     mousePos = [mouse.x, mouse.y];
-    drawSystem();
+    //drawSystem();
     console.log(mousePos);
+  }
+
+  function resize(size){
+    width = size.width;
+    height = size.height;
+    setup();
   }
 
   return {
     begin: setup,
+    resize: resize,
     onMouseMove: onMouseMove
   }
 };
