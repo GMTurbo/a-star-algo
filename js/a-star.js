@@ -52,7 +52,7 @@ var System = function(options) {
           j: j,
           index: i*x+j,
           width: ~~(scale),
-          wall: Math.random() <= 0.3
+          wall: Math.random() <= 0.2
         }));
       }
     }
