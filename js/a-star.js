@@ -43,7 +43,7 @@ var System = function(options) {
 
     $(canvas).attr('width', width).attr('height', height);
 
-    var scale = 50;
+    var scale = 100;
 
     start = getStartLocation({
         xRange: {

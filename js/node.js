@@ -110,7 +110,7 @@ Node.prototype.drawFromCamera = function(context, camera) {
   context.fillStyle = this.getColor();
   context.shadowColor = this.getShadowColor();
   context.rect(this.x, this.y, this.width, this.width);
-  context.rect(pnt.x, pnt.y, 1, 1);
+  //context.rect(pnt.x, pnt.y, 1, 1);
   context.closePath();
   context.shadowOffsetX = shadowOffsets[0];
   context.shadowOffsetY = shadowOffsets[1];
@@ -130,20 +130,24 @@ Node.prototype.calculateOffsetsFromCamera = function(point) {
   ];
 
   this.state = this.getDistance({
-      x: point[0],
-      y: point[1]
-    }) < this.width/2 ? 1 : 0;
+    x: point[0],
+    y: point[1]
+  }) < this.width / 2 ? 1 : 0;
 
   var angle = Math.atan2(vecFromCamera[1], vecFromCamera[0]);
-  return [this.width / this.scaler * Math.cos(angle), this.width / this.scaler * Math.sin(angle)];
+
+  return [
+    this.width / this.scaler * Math.cos(angle),
+    this.width / this.scaler * Math.sin(angle)
+  ];
 };
 
 Node.prototype.setStateFromMouse = function(highlighted) {
   // if (this.getDistance({
-//     x: highlighted.x,
-//     y: highlighted.y
-//   }) < this.width)
-//   this.state = highlighted.mouseDown;
+  //     x: highlighted.x,
+  //     y: highlighted.y
+  //   }) < this.width)
+  //   this.state = highlighted.mouseDown;
 }
 
 Node.prototype.getDistance = function(target) {
