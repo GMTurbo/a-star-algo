@@ -132,14 +132,14 @@ var System = function(options) {
       return node.F;
     });
 
-    //if (next.length == 1) {
+    if (next.length == 1) {
       next = next[0];
-    // } else if (stuckCount > 5 && Math.abs(next[0].F - next[1].F) <= 30) {
-    //   stuckCount = 0;
-    //   next = next[~~(Math.random() * (next.length > 10 ? 10 : next.length))];
-    // } else {
-    //  next = next[0];
-    //}
+    } else if (stuckCount > 10 && Math.abs(next[0].F - next[1].F) <= 50) {
+      stuckCount = 0;
+      next = next[~~(Math.random() * (next.length > 5 ? 5 : next.length))];
+    } else {
+     next = next[0];
+    }
 
     next.inPath = true;
 
