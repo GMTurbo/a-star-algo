@@ -38,9 +38,9 @@ $(document).ready(function() {
 
   var mouseDown = 0;
 
-  // $(window).on("mousedown", function(event) {
-  //   mouseDown = 1;
-  // });
+  $(window).on("mousedown", function(event) {
+    mouseDown = 1;
+  });
 
   $(window).on("mousemove", function(event) {
     system.onMouseMove({
@@ -50,9 +50,15 @@ $(document).ready(function() {
     });
   });
 
-  // $(window).on("mouseup", function(event) {
-  //   mouseDown = 0;
-  // });
+  $(window).on("mouseup", function(event) {
+    mouseDown = 0;
+  });
+
+  $(window).on("keypress", function(event) {
+    system.onKeyPress({
+      keyCode: event.keyCode
+    });
+  });
 
   $(window).resize(function() {
 

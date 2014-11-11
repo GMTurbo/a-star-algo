@@ -27,7 +27,9 @@ var System = function(options) {
     isMobile = options.isMobile,
     start, end, current,
     open = [],
-    closed = [];
+    closed = [],
+    run = false,
+    scale = 25;
 
   var setup = function() {
     //heuristic value of each node can
@@ -43,16 +45,14 @@ var System = function(options) {
 
     $(canvas).attr('width', width).attr('height', height);
 
-    var scale = 15;
-
     for (var i = 0, x = ~~(width / scale); i < x; i++) {
       for (var j = 0, y = ~~(height / scale); j < y; j++) {
         mesh.push(new Node({
           i: i,
           j: j,
-          index: i*x+j,
+          index: i * x + j,
           width: ~~(scale),
-          wall: Math.random() <= 0.2
+          wall: Math.random() <= 0.05
         }));
       }
     }
@@ -60,7 +60,7 @@ var System = function(options) {
     start = mesh[0];
     start.startingNode = true;
     current = start;
-    end = mesh[mesh.length-1];
+    end = mesh[mesh.length - 1];
     end.endingNode = true;
 
     _.forEach(mesh, function(node) {
@@ -108,13 +108,18 @@ var System = function(options) {
     return end;
   };
 
-  var found = false, stuckCount = 0;
+  var found = false,
+    stuckCount = 0;
 
   function updatePath() {
     //determine the walkable adjacent squares to current start position
 
+    if(!run)
+      return;
+
     if (found || open.length == 0) {
       colorPath(current);
+      run = false;
       return;
     }
 
@@ -127,20 +132,20 @@ var System = function(options) {
       return node.F;
     });
 
-    if (next.length == 1) {
+    //if (next.length == 1) {
       next = next[0];
-    } else if (stuckCount > 5 && Math.abs(next[0].F - next[1].F) <= 15){
-      stuckCount = 0;
-      next = next[~~(Math.random() * (next.length > 5 ? 5 : next.length))];
-    }else{
-      next = next[0];
-    }
+    // } else if (stuckCount > 5 && Math.abs(next[0].F - next[1].F) <= 30) {
+    //   stuckCount = 0;
+    //   next = next[~~(Math.random() * (next.length > 10 ? 10 : next.length))];
+    // } else {
+    //  next = next[0];
+    //}
 
     next.inPath = true;
 
     //current.parent = next;
 
-    if(current.index == next.index)
+    if (current.index == next.index)
       stuckCount++;
 
     current = next;
@@ -163,38 +168,16 @@ var System = function(options) {
 
     _.forEach(neighbors, function(neighbor) {
       determineNodeValues(current, neighbor);
-      // withinClosed = _.filter(closed, function(node) {
-      //   return node.getIndex() === neighbor.getIndex();
-      // });
-      //
-      // if (withinClosed.length > 0)
-      //   return;
-      //
-      // withinOpened = _.filter(open, function(node) {
-      //   return node.getIndex() === neighbor.getIndex();
-      // });
-      //
-      // if (withinOpened.length == 0) {
-      //   neighbor.parent = current;
-      //   neighbor.open = 1;
-      //   neighbor.setMovementCost(getCost(neighbor, start));
-      //   open.push(neighbor);
-      // } else {
-      //   var g = getCost(current, neighbor); //Math.abs(neighbor.i - current.i) + Math.abs(neighbor.j - current.j);
-      //
-      //   if (g + neighbor.H <= neighbor.F) {
-      //     neighbor.setMovementCost(g);
-      //     neighbor.parent = current;
-      //   }
-      // }
     });
   };
-  function colorPath(current){
+
+  function colorPath(current) {
     current.finished = true;
-    if(current.parent){
+    if (current.parent) {
       colorPath(current.parent);
     }
   };
+
   function determineNodeValues(current, testing) {
     if (testing.getIndex() == end.getIndex()) {
       end.parent = current;
@@ -202,12 +185,13 @@ var System = function(options) {
       return;
     }
 
-    if (testing.wall) return;
+    if (testing.wall)
+      return;
 
     if (!_.contains(closed, testing)) {
       if (_.contains(open, testing)) {
         var newCost = getCost(current, testing);
-        if (newCost < testing.G) {
+        if (newCost <= testing.G) {
           testing.parent = current;
           testing.setMovementCost(newCost);
         }
@@ -228,7 +212,7 @@ var System = function(options) {
     } else if (Math.abs(current.j - node.j) == 1 && Math.abs(current.i - node.i) == 1) {
       return 14;
     }
-    return 10;
+    return 20;
   }
 
   function getWalkableNode(current, all) {
@@ -260,12 +244,30 @@ var System = function(options) {
     reqFrame(updateSystem);
   };
 
-  var mousePos = [0, 0];
-
   function onMouseMove(mouse) {
-    mousePos = [mouse.x, mouse.y];
+    if (mouse.mouseDown)
+      addWallToNode([mouse.x, mouse.y]);
     //drawSystem();
     //console.log(mousePos);
+  }
+
+  function onKeyPress(e) {
+    if (e.keyCode == 0 || e.keyCode == 32) {
+      run = !run;
+    }
+  }
+
+  function addWallToNode(pos) {
+    var nodes = _.filter(mesh, function(node) {
+      return Math.sqrt(Math.pow(pos[0] - node.x, 2) +
+      Math.pow(pos[1] - node.y, 2)) < scale;
+    });
+
+    if (nodes.length > 0) {
+      _.forEach(nodes, function(node) {
+        node.wall = true;
+      });
+    }
   }
 
   function resize(size) {
@@ -277,6 +279,7 @@ var System = function(options) {
   return {
     begin: setup,
     resize: resize,
-    onMouseMove: onMouseMove
+    onMouseMove: onMouseMove,
+    onKeyPress: onKeyPress
   }
 };

@@ -87,32 +87,15 @@ Node.prototype.setParent = function(parent) {
 
 Node.prototype.draw = function(context) {
 
-  //this.wall = Math.random() <= 0.25;
-  // if (this.clock > 5) {
-  //   this.clock = 0;
-  //   this.wall = Math.random() <= 0.10;
-  // }
-
   var pnt = this.getCenter();
-
+  //*********************
   context.beginPath();
-
+  context.lineWeight = 2;
   context.fillStyle = this.getColor();
-  context.shadowColor = this.getShadowColor();
   context.rect(this.x, this.y, this.width, this.width);
-
   context.closePath();
-  //context.shadowOffsetX = (this.wall ? -1 : 1);
-  //context.shadowOffsetY = (this.wall ? -1 : 1);
-  //context.shadowBlur = 10;
   context.fill();
-
   context.stroke();
-
-  context.closePath();
-
-  //this.clock++;
-
 };
 
 Node.prototype.getCenter = function() {
