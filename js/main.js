@@ -36,22 +36,30 @@ $(document).ready(function() {
 
   system.begin();
 
-  var mouseDown = 0;
+  var mouseDown1 = 0, mouseDown2 = 0;
 
   $(window).on("mousedown", function(event) {
-    mouseDown = 1;
+    event.stopPropagation();
+    if(event.ctrlKey){
+      mouseDown2 = 1;
+    }else{
+      mouseDown1 = 1;
+    }
+
   });
 
   $(window).on("mousemove", function(event) {
     system.onMouseMove({
       x: event.pageX,
       y: event.pageY,
-      mouseDown: mouseDown
+      mouseDown1: mouseDown1,
+      mouseDown2: mouseDown2
     });
   });
 
   $(window).on("mouseup", function(event) {
-    mouseDown = 0;
+    event.stopPropagation();
+    mouseDown1 = mouseDown2 = 0;
   });
 
   $(window).on("keypress", function(event) {

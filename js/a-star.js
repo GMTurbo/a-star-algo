@@ -52,20 +52,21 @@ var System = function(options) {
           j: j,
           index: i * x + j,
           width: ~~(scale),
-          wall: Math.random() <= 0.05
+          h: 0,
+          g: 0,
+          f: 0,
+          wall: false
         }));
       }
     }
 
     start = mesh[0];
     start.startingNode = true;
+
     current = start;
     end = mesh[mesh.length - 1];
     end.endingNode = true;
-
-    _.forEach(mesh, function(node) {
-      node.setHueristic(calculateHeuristic(node, end));
-    })
+    start.setHueristic(calculateHeuristic(start, end));
 
     open.push(current);
 
@@ -78,8 +79,18 @@ var System = function(options) {
   function calculateHeuristic(current, target) {
     //manhattan heuristic is just the number of
     // nodes between the node and the target
-    if (current.wall) return 1e5;
-    return Math.abs(current.x - target.x) + Math.abs(current.y - target.y)
+    var D = 10;
+    //manhattan
+    //return D * Math.abs(current.x - target.x) + Math.abs(current.y - target.y);
+
+    var dx = Math.abs(current.x - target.x);
+    var dy = Math.abs(current.y - target.y);
+
+    return D * (function() {
+      //return dx > dy ? dx : dy;
+      return Math.sqrt(dx*dx+dy*dy);
+    })();
+
   };
 
   function calculateMoveCost(current, target) {
@@ -114,7 +125,7 @@ var System = function(options) {
   function updatePath() {
     //determine the walkable adjacent squares to current start position
 
-    if(!run)
+    if (!run)
       return;
 
     if (found || open.length == 0) {
@@ -125,38 +136,16 @@ var System = function(options) {
 
     current.open = 0;
 
-    // var next = _.min(open, function(node) {
-    //   return node.F;
-    // });
-    var next = _.sortBy(open, function(node) {
+    var next = _.min(open, function(node) {
       return node.F;
     });
 
-    if (next.length == 1) {
-      next = next[0];
-    } else if (stuckCount > 10 && Math.abs(next[0].F - next[1].F) <= 50) {
-      stuckCount = 0;
-      next = next[~~(Math.random() * (next.length > 5 ? 5 : next.length))];
-    } else {
-     next = next[0];
-    }
-
-    next.inPath = true;
-
-    //current.parent = next;
-
-    if (current.index == next.index)
-      stuckCount++;
-
     current = next;
 
+    open = _.reject(open, current);
 
     if (!_.contains(closed, current))
       closed.push(current);
-
-    _.reject(open, function(node) {
-      return current.getIndex() === node.getIndex(); // or some complex logic
-    });
 
     found = _.contains(closed, end)
 
@@ -178,30 +167,41 @@ var System = function(options) {
     }
   };
 
-  function determineNodeValues(current, testing) {
-    if (testing.getIndex() == end.getIndex()) {
+  function determineNodeValues(current, neighbor) {
+
+    if (neighbor.wall || _.contains(closed, neighbor))
+      return;
+
+    if (neighbor.getIndex() == end.getIndex()) {
       end.parent = current;
       found = true;
       return;
     }
 
-    if (testing.wall)
-      return;
+    var gScoreIsBest = false;
+    var gScore = getCost(current, neighbor);
 
-    if (!_.contains(closed, testing)) {
-      if (_.contains(open, testing)) {
-        var newCost = getCost(current, testing);
-        if (newCost <= testing.G) {
-          testing.parent = current;
-          testing.setMovementCost(newCost);
-        }
-      } else {
-        testing.parent = current;
-        testing.setMovementCost(getCost(current, testing));
-        testing.open = 1;
-        open.push(testing);
-      }
+    if (!_.contains(open, neighbor)) {
+      gScoreIsBest = true;
+      neighbor.parent = current;
+      neighbor.setHueristic(calculateHeuristic(neighbor, end));
+      //testing.setMovementCost(current.G + 1); //getCost(current, testing)
+      neighbor.open = 1;
+      neighbor.inPath = true;
+      open.push(neighbor);
+    } else if (gScore < neighbor.G) {
+      // We have already seen the node, but last time it had a worse g (distance from start)
+      gScoreIsBest = true;
     }
+    if (gScoreIsBest) {
+      // Found an optimal (so far) path to this node.	 Store info on how we got here and
+      //	just how good it really is...
+      neighbor.parent = current;
+      neighbor.inPath = true;
+      neighbor.setMovementCost(gScore);
+      //neighbor.debug = "F: " + neighbor.f + "<br />G: " + neighbor.g + "<br />H: " + neighbor.h;
+    }
+    neighbor.inPath = false;
   }
 
   function getCost(current, node) {
@@ -216,9 +216,8 @@ var System = function(options) {
   }
 
   function getWalkableNode(current, all) {
-    return _.filter(all, function(node) {
-      if (!node.open || node.wall || node.getIndex() == current.getIndex())
-        return false;
+
+    var ret = _.filter(all, function(node) {
       if (Math.abs(current.i - node.i) == 1 && Math.abs(current.j - node.j) == 0) {
         return true;
       } else if (Math.abs(current.j - node.j) == 1 && Math.abs(current.i - node.i) == 0) {
@@ -228,6 +227,8 @@ var System = function(options) {
       }
       return false;
     });
+
+    return ret;
   };
 
   function drawSystem() {
@@ -245,8 +246,11 @@ var System = function(options) {
   };
 
   function onMouseMove(mouse) {
-    if (mouse.mouseDown)
+    if (mouse.mouseDown1)
       addWallToNode([mouse.x, mouse.y]);
+    else if (mouse.mouseDown2) {
+      removeWallToNode([mouse.x, mouse.y]);
+    }
     //drawSystem();
     //console.log(mousePos);
   }
@@ -257,15 +261,30 @@ var System = function(options) {
     }
   }
 
-  function addWallToNode(pos) {
+  function getNear(pos){
     var nodes = _.filter(mesh, function(node) {
       return Math.sqrt(Math.pow(pos[0] - node.x, 2) +
-      Math.pow(pos[1] - node.y, 2)) < scale;
+        Math.pow(pos[1] - node.y, 2)) < scale;
     });
+    return nodes;
+  }
+
+  function addWallToNode(pos) {
+    nodes = getNear(pos);
 
     if (nodes.length > 0) {
       _.forEach(nodes, function(node) {
         node.wall = true;
+      });
+    }
+  }
+
+  function removeWallToNode(pos) {
+    nodes = getNear(pos);
+
+    if (nodes.length > 0) {
+      _.forEach(nodes, function(node) {
+        node.wall = false;
       });
     }
   }

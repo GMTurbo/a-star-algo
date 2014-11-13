@@ -34,7 +34,7 @@ Node.prototype.getColor = function() {
 
   switch (this.open) {
     case 0:
-      color = 'rgba(255,0,0,' + this.opacity + ')';
+      color = 'rgba(255,200,0,' + 200 + ')';
       break;
     case 1:
       color = 'rgba(171,241,55,' + 200 + ')';
