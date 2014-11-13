@@ -41,7 +41,9 @@ var System = function(options) {
     //so let's randomly select the start and
     // stop locations
 
-    mesh = [];
+    mesh = [],
+    open = [],
+    closed = [];
 
     $(canvas).attr('width', width).attr('height', height);
 
@@ -86,9 +88,9 @@ var System = function(options) {
     var dx = Math.abs(current.x - target.x);
     var dy = Math.abs(current.y - target.y);
 
-    return D * (function() {
-      //return dx > dy ? dx : dy;
-      return Math.sqrt(dx * dx + dy * dy);
+    return D * (dx + dy) + (D*1.41 - 2 * D) * (function() {
+      return dx > dy ? dy : dx;
+      //return Math.sqrt(dx * dx + dy * dy);
     })();
 
   };
@@ -185,7 +187,6 @@ var System = function(options) {
       gScoreIsBest = true;
       neighbor.parent = current;
       neighbor.setHueristic(calculateHeuristic(neighbor, end));
-      //testing.setMovementCost(current.G + 1); //getCost(current, testing)
       neighbor.open = 1;
       neighbor.inPath = true;
       open.push(neighbor);
@@ -199,7 +200,6 @@ var System = function(options) {
       neighbor.parent = current;
       neighbor.inPath = true;
       neighbor.setMovementCost(gScore);
-      //neighbor.debug = "F: " + neighbor.f + "<br />G: " + neighbor.g + "<br />H: " + neighbor.h;
     }
     neighbor.inPath = false;
   }
@@ -212,7 +212,7 @@ var System = function(options) {
     } else if (Math.abs(current.j - node.j) == 1 && Math.abs(current.i - node.i) == 1) {
       return 14;
     }
-    return 20;
+    return 10;
   }
 
   function getWalkableNode(current, all) {
@@ -258,6 +258,8 @@ var System = function(options) {
   function onKeyPress(e) {
     if (e.keyCode == 0 || e.keyCode == 32) {
       run = !run;
+    } else if (e.keyCode == 114) {
+      setup();
     }
   }
 
