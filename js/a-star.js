@@ -88,7 +88,7 @@ var System = function(options) {
 
     return D * (function() {
       //return dx > dy ? dx : dy;
-      return Math.sqrt(dx*dx+dy*dy);
+      return Math.sqrt(dx * dx + dy * dy);
     })();
 
   };
@@ -261,7 +261,7 @@ var System = function(options) {
     }
   }
 
-  function getNear(pos){
+  function getNear(pos) {
     var nodes = _.filter(mesh, function(node) {
       return Math.sqrt(Math.pow(pos[0] - node.x, 2) +
         Math.pow(pos[1] - node.y, 2)) < scale;
