@@ -54,10 +54,6 @@ var System = function(options) {
           j: j,
           index: i * x + j,
           width: ~~(scale),
-          h: 0,
-          g: 0,
-          f: 0,
-          wall: false
         }));
       }
     }
@@ -93,32 +89,6 @@ var System = function(options) {
       //return Math.sqrt(dx * dx + dy * dy);
     })();
 
-  };
-
-  function calculateMoveCost(current, target) {
-    // 10 for nodes next too
-    // 14 for nodes diagonal too
-    return 1; //(Math.abs(current.x - target.x) == 1 * * )
-  };
-
-  function getStartLocation(area) {
-    if (!start) {
-      start = {
-        x: area.xRange.min,
-        y: area.yRange.min
-      }
-    }
-    return start;
-  };
-
-  function getEndLocation(area) {
-    if (!end) {
-      end = {
-        x: area.xRange.max,
-        y: area.yRange.max
-      }
-    }
-    return end;
   };
 
   var found = false,
@@ -216,8 +186,7 @@ var System = function(options) {
   }
 
   function getWalkableNode(current, all) {
-
-    var ret = _.filter(all, function(node) {
+    return _.filter(all, function(node) {
       if (Math.abs(current.i - node.i) == 1 && Math.abs(current.j - node.j) == 0) {
         return true;
       } else if (Math.abs(current.j - node.j) == 1 && Math.abs(current.i - node.i) == 0) {
@@ -227,8 +196,6 @@ var System = function(options) {
       }
       return false;
     });
-
-    return ret;
   };
 
   function drawSystem() {
@@ -251,8 +218,6 @@ var System = function(options) {
     else if (mouse.mouseDown2) {
       removeWallToNode([mouse.x, mouse.y]);
     }
-    //drawSystem();
-    //console.log(mousePos);
   }
 
   function onKeyPress(e) {
@@ -264,11 +229,10 @@ var System = function(options) {
   }
 
   function getNear(pos) {
-    var nodes = _.filter(mesh, function(node) {
+    return _.filter(mesh, function(node) {
       return Math.sqrt(Math.pow(pos[0] - node.x, 2) +
         Math.pow(pos[1] - node.y, 2)) < scale;
     });
-    return nodes;
   }
 
   function addWallToNode(pos) {
