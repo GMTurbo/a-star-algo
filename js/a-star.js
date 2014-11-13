@@ -43,7 +43,7 @@ var System = function(options) {
 
     mesh = [],
     open = [],
-    closed = [];
+    closed = [], found = false, run = false;
 
     $(canvas).attr('width', width).attr('height', height);
 
@@ -224,6 +224,7 @@ var System = function(options) {
     if (e.keyCode == 0 || e.keyCode == 32) {
       run = !run;
     } else if (e.keyCode == 114) {
+
       setup();
     }
   }
