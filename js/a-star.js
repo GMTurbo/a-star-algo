@@ -29,7 +29,7 @@ var System = function(options) {
     open = [],
     closed = [],
     run = false,
-    scale = 25;
+    scale = 15;
 
   var setup = function() {
     //heuristic value of each node can
@@ -41,7 +41,9 @@ var System = function(options) {
     //so let's randomly select the start and
     // stop locations
 
-    mesh = [], open = [], closed = [], found = false, run = false;
+    mesh = [],
+    open = [],
+    closed = [], found = false, run = false;
 
     $(canvas).attr('width', width).attr('height', height);
 
@@ -52,7 +54,7 @@ var System = function(options) {
           j: j,
           index: i * x + j,
           width: ~~(scale),
-          wall: Math.random() <= 0.3
+          wall: Math.random() <= 0.4
         }));
       }
     }
@@ -84,14 +86,15 @@ var System = function(options) {
     var dx = Math.abs(current.x - target.x);
     var dy = Math.abs(current.y - target.y);
 
-    return D * (dx + dy) + (D * 1.41 - 2 * D) * (function() {
+    return D * (dx + dy) + (D*1.41 - 2 * D) * (function() {
       return dx > dy ? dy : dx;
       //return Math.sqrt(dx * dx + dy * dy);
     })();
 
-  }
+  };
 
-  var found = false;
+  var found = false,
+    stuckCount = 0;
 
   function updatePath() {
     //determine the walkable adjacent squares to current start position
@@ -115,9 +118,10 @@ var System = function(options) {
 
     open = _.reject(open, current);
 
-    closed.push(current);
+    if (!_.contains(closed, current))
+      closed.push(current);
 
-    found = _.contains(closed, end);
+    found = _.contains(closed, end)
 
     if (found) {
       return;
@@ -128,14 +132,14 @@ var System = function(options) {
     _.forEach(neighbors, function(neighbor) {
       determineNodeValues(current, neighbor);
     });
-  }
+  };
 
   function colorPath(current) {
     current.finished = true;
     if (current.parent) {
       colorPath(current.parent);
     }
-  }
+  };
 
   function determineNodeValues(current, neighbor) {
 
@@ -194,7 +198,7 @@ var System = function(options) {
       }
       return false;
     });
-  }
+  };
 
   function drawSystem() {
     context.clearRect(0, 0, width, height);
@@ -202,13 +206,13 @@ var System = function(options) {
       //node.drawFromCamera(context, mousePos);
       node.draw(context);
     });
-  }
+  };
 
   function updateSystem() {
     updatePath();
     drawSystem();
     reqFrame(updateSystem);
-  }
+  };
 
   function onMouseMove(mouse) {
     if (mouse.mouseDown1)
@@ -222,7 +226,13 @@ var System = function(options) {
     if (e.keyCode == 0 || e.keyCode == 32) {
       run = !run;
     } else if (e.keyCode == 114) {
+      //reset
       setup();
+    }else if(e.keyCode == 99){
+      //clear
+      _.forEach(mesh, function(node){
+        node.wall = false;
+      })
     }
   }
 
@@ -264,5 +274,5 @@ var System = function(options) {
     resize: resize,
     onMouseMove: onMouseMove,
     onKeyPress: onKeyPress
-  };
+  }
 };

@@ -90,12 +90,12 @@ Node.prototype.draw = function(context) {
   var pnt = this.getCenter();
   //*********************
   context.beginPath();
-  context.lineWeight = 2;
+  context.lineWeight = this.wall ? 10 : 1;
   context.fillStyle = this.getColor();
   context.rect(this.x, this.y, this.width, this.width);
   context.closePath();
   context.fill();
-  context.stroke();
+  this.wall && context.stroke();
 };
 
 Node.prototype.getCenter = function() {
