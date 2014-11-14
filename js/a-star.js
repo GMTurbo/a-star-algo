@@ -29,7 +29,8 @@ var System = function(options) {
     open = [],
     closed = [],
     run = false,
-    scale = 15;
+    processCount = 10,
+    scale = 10;
 
   var setup = function() {
     //heuristic value of each node can
@@ -42,8 +43,8 @@ var System = function(options) {
     // stop locations
 
     mesh = [],
-    open = [],
-    closed = [], found = false, run = false;
+      open = [],
+      closed = [], found = false, run = false;
 
     $(canvas).attr('width', width).attr('height', height);
 
@@ -63,7 +64,7 @@ var System = function(options) {
     start.startingNode = true;
 
     current = start;
-    end = mesh[~~(Math.random()*mesh.length - 1)];
+    end = mesh[~~(Math.random() * mesh.length - 1)];
     end.endingNode = true;
     end.wall = false;
     start.setHueristic(calculateHeuristic(start, end));
@@ -86,7 +87,7 @@ var System = function(options) {
     var dx = Math.abs(current.x - target.x);
     var dy = Math.abs(current.y - target.y);
 
-    return D * (dx + dy) + (D*1.41 - 2 * D) * (function() {
+    return D * (dx + dy) + (D * 1.41 - 2 * D) * (function() {
       return dx > dy ? dy : dx;
       //return Math.sqrt(dx * dx + dy * dy);
     })();
@@ -177,14 +178,15 @@ var System = function(options) {
   }
 
   function getCost(current, node) {
+    return current.G + 1;
     if (Math.abs(current.i - node.i) == 1 && Math.abs(current.j - node.j) == 0) {
-      return 10;
+      return current.G + 10;
     } else if (Math.abs(current.j - node.j) == 1 && Math.abs(current.i - node.i) == 0) {
-      return 10;
+      return current.G + 10;
     } else if (Math.abs(current.j - node.j) == 1 && Math.abs(current.i - node.i) == 1) {
-      return 14;
+      return current.G + 14;
     }
-    return 10;
+    return current.G + 10;
   }
 
   function getWalkableNode(current, all) {
@@ -209,7 +211,9 @@ var System = function(options) {
   };
 
   function updateSystem() {
-    updatePath();
+    for(var i = 0; i < processCount ; i++){
+      updatePath();
+    }
     drawSystem();
     reqFrame(updateSystem);
   };
@@ -228,9 +232,9 @@ var System = function(options) {
     } else if (e.keyCode == 114) {
       //reset
       setup();
-    }else if(e.keyCode == 99){
+    } else if (e.keyCode == 99) {
       //clear
-      _.forEach(mesh, function(node){
+      _.forEach(mesh, function(node) {
         node.wall = false;
       })
     }
