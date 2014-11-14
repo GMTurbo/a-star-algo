@@ -102,7 +102,7 @@ Node.prototype.getCenter = function() {
   return {
     x: this.x + this.width / 2,
     y: this.y + this.width / 2
-  }
+  };
 };
 
 Node.prototype.drawFromCamera = function(context, camera) {
